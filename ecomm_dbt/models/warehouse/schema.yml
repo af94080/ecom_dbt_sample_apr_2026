@@ -1,0 +1,135 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Date dimension generated via dbt_utils.date_spine (2020-01-01 → 2030-12-31)."
+    columns:
+      - name: date_key
+        description: "Integer surrogate key in YYYYMMDD format."
+        tests: [not_null, unique]
+      - name: full_date
+        tests: [not_null]
+      - name: year
+        tests: [not_null]
+      - name: quarter
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4]
+      - name: month
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      - name: day_of_week
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7]
+
+  - name: dim_channel
+    description: "Static channel lookup seeded from channel_lookup.csv."
+    columns:
+      - name: channel_key
+        tests: [not_null, unique]
+      - name: channel_name
+        tests: [not_null]
+      - name: channel_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['digital', 'physical', 'third_party']
+
+  - name: dim_customer
+    description: "Conformed customer dimension sourced from stg_customers."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: full_name
+        tests: [not_null]
+      - name: email
+        tests: [not_null]
+
+  - name: dim_product
+    description: "Conformed product dimension joined with supplier names."
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: sku
+        tests: [not_null]
+      - name: cost_price
+        tests: [not_null]
+      - name: list_price
+        tests: [not_null]
+
+  - name: fact_order_items
+    description: >
+      Grain: one row per order line item.
+      Virtual columns (gross_revenue, net_revenue, cost_of_goods, gross_margin)
+      from the Snowflake DDL are managed here as explicit SQL expressions so they
+      are documented, tested, and version-controlled.
+    columns:
+      - name: item_id
+        description: "Natural key — unique identifier for each order line item."
+        tests: [not_null, unique]
+
+      - name: order_id
+        tests: [not_null]
+
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_id
+
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_product')
+              field: product_id
+
+      - name: date_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+
+      - name: channel_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_channel')
+              field: channel_key
+
+      - name: order_status
+        tests: [not_null]
+
+      - name: quantity
+        description: "Units ordered; must be positive."
+        tests: [not_null]
+
+      - name: unit_price
+        description: "Per-unit selling price at time of order."
+        tests: [not_null]
+
+      - name: discount_amount
+        tests: [not_null]
+
+      - name: gross_revenue
+        description: "quantity × unit_price (no discount)."
+        tests: [not_null]
+
+      - name: net_revenue
+        description: "quantity × unit_price − discount_amount."
+        tests: [not_null]
+
+      - name: cost_of_goods
+        description: "cost_price × quantity from dim_product."
+        tests: [not_null]
+
+      - name: gross_margin
+        description: "net_revenue − cost_of_goods."
+        tests: [not_null]

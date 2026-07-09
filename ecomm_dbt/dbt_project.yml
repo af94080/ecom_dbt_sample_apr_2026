@@ -1,0 +1,33 @@
+name: 'ecomm'
+version: '1.0.0'
+config-version: 2
+
+profile: 'ecomm'
+
+model-paths:  ["models"]
+seed-paths:   ["seeds"]
+test-paths:   ["tests"]
+macro-paths:  ["macros"]
+
+target-path:  "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  ecomm:
+    +database: ECOMM_DB
+    staging:
+      +materialized: view
+      +schema: STAGING
+    warehouse:
+      +materialized: table
+      +schema: WAREHOUSE
+    mart:
+      +materialized: incremental
+      +schema: DATAMART
+
+seeds:
+  ecomm:
+    +database: ECOMM_DB
+    +schema: WAREHOUSE

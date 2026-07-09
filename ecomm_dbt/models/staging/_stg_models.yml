@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Cleaned order headers cast from VARCHAR landing columns."
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+      - name: order_status
+        tests: [not_null]
+      - name: order_date
+        tests: [not_null]
+      - name: channel
+        tests: [not_null]
+
+  - name: stg_order_items
+    description: "Cleaned order line items with numeric casts applied."
+    columns:
+      - name: item_id
+        tests: [not_null, unique]
+      - name: order_id
+        tests: [not_null]
+      - name: product_id
+        tests: [not_null]
+      - name: quantity
+        tests: [not_null]
+      - name: unit_price
+        tests: [not_null]
+
+  - name: stg_customers
+    description: "Cleaned customer records with full_name derived and email lowercased."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: email
+        tests: [not_null]
+
+  - name: stg_products
+    description: "Cleaned product catalogue with numeric price columns cast."
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: sku
+        tests: [not_null]
+
+  - name: stg_suppliers
+    description: "Cleaned supplier records."
+    columns:
+      - name: supplier_id
+        tests: [not_null, unique]

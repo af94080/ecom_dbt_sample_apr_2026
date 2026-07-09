@@ -1,0 +1,65 @@
+version: 2
+
+sources:
+  - name: landing
+    description: "Raw landing tables loaded from source systems (ECOMM_DB.LANDING)."
+    database: ECOMM_DB
+    schema: LANDING
+
+    tables:
+      - name: lnd_orders
+        description: "Order headers received from the OMS API."
+        loaded_at_field: _LOADED_AT
+        freshness:
+          warn_after:  {count: 24, period: hour}
+          error_after: {count: 48, period: hour}
+        columns:
+          - name: ORDER_ID
+            description: "Surrogate order identifier (UUID)."
+            tests: [not_null, unique]
+          - name: CUSTOMER_ID
+            tests: [not_null]
+          - name: STATUS
+            tests: [not_null]
+          - name: ORDER_DATE
+            tests: [not_null]
+
+      - name: lnd_order_items
+        description: "Order line items received from the OMS API."
+        loaded_at_field: _LOADED_AT
+        freshness:
+          warn_after:  {count: 24, period: hour}
+          error_after: {count: 48, period: hour}
+        columns:
+          - name: ITEM_ID
+            description: "Surrogate line-item identifier (UUID)."
+            tests: [not_null, unique]
+          - name: ORDER_ID
+            tests: [not_null]
+          - name: PRODUCT_ID
+            tests: [not_null]
+
+      - name: lnd_customers
+        description: "Customer master data from the CRM API."
+        loaded_at_field: _LOADED_AT
+        columns:
+          - name: CUSTOMER_ID
+            tests: [not_null, unique]
+          - name: EMAIL
+            tests: [not_null]
+
+      - name: lnd_products
+        description: "Product catalogue from the PIM API."
+        loaded_at_field: _LOADED_AT
+        columns:
+          - name: PRODUCT_ID
+            tests: [not_null, unique]
+          - name: SKU
+            tests: [not_null]
+
+      - name: lnd_suppliers
+        description: "Supplier master data from the ERP API."
+        loaded_at_field: _LOADED_AT
+        columns:
+          - name: SUPPLIER_ID
+            tests: [not_null, unique]

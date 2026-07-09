@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: mart_sales_summary
+    description: >
+      Daily sales aggregated by product, customer segment, and channel.
+      Grain: one row per (date_key, product_id, customer_segment, channel).
+      margin_pct is the virtual column from the DDL expressed as explicit SQL.
+    columns:
+      - name: date_key
+        tests: [not_null]
+      - name: product_id
+        tests: [not_null]
+      - name: customer_segment
+        tests: [not_null]
+      - name: channel
+        tests: [not_null]
+      - name: total_orders
+        tests: [not_null]
+      - name: total_units_sold
+        tests: [not_null]
+      - name: total_gross_revenue
+        tests: [not_null]
+      - name: total_net_revenue
+        tests: [not_null]
+      - name: total_cogs
+        tests: [not_null]
+      - name: total_gross_margin
+        tests: [not_null]
+
+  - name: mart_customer_lifetime
+    description: >
+      Customer lifetime value and RFM segmentation.
+      Grain: one row per customer_id.
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: total_orders
+        tests: [not_null]
+      - name: total_spend
+        tests: [not_null]
+      - name: rfm_segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Champions', 'Loyal', 'At Risk', 'Lost']
+
+  - name: mart_product_performance
+    description: >
+      Daily product-level performance including revenue rank within category.
+      Grain: one row per (product_id, date_key).
+    columns:
+      - name: product_id
+        tests: [not_null]
+      - name: date_key
+        tests: [not_null]
+      - name: units_sold
+        tests: [not_null]
+      - name: revenue
+        tests: [not_null]
+      - name: rank_in_category
+        tests: [not_null]
